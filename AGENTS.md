@@ -73,5 +73,7 @@ Hello World запущено на S25 Ultra. Далі — розбір стру�
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
 - Створено проєкт Numismat (Kotlin DSL, Compose), Hello World працює на телефоні.
+- Розібрано `MainActivity.kt`: Activity, onCreate, setContent, @Composable, Scaffold, Modifier, @Preview
+  (у коді є коментарі українською).
 - Іконка додатку: векторна adaptive icon з монетками (`drawable/ic_launcher_*.xml`).
 - Build types: debug vs release (`buildTypes` в `app/build.gradle.kts`, панель Build Variants).
