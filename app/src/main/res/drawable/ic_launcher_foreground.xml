@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Задня монета -->
+    <path
+        android:fillColor="#B8860B"
+        android:pathData="M43,47a20,20 0,1 0,40 0a20,20 0,1 0,-40 0z" />
+    <path
+        android:fillColor="#D4A017"
+        android:pathData="M47,47a16,16 0,1 0,32 0a16,16 0,1 0,-32 0z" />
+    <!-- Передня монета -->
+    <path
+        android:fillColor="#C9971A"
+        android:pathData="M27,59a22,22 0,1 0,44 0a22,22 0,1 0,-44 0z" />
+    <path
+        android:fillColor="#F2C94C"
+        android:pathData="M31,59a18,18 0,1 0,36 0a18,18 0,1 0,-36 0z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M34,59a15,15 0,1 0,30 0a15,15 0,1 0,-30 0z"
+        android:strokeWidth="1"
+        android:strokeColor="#B8860B" />
+    <!-- Літера N -->
+    <path
+        android:fillColor="#8B6508"
+        android:pathData="M43.5,66V52H46.5L51.5,60.5V52H54.5V66H51.5L46.5,57.5V66Z" />
+</vector>
