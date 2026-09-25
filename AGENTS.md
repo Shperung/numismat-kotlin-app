@@ -67,7 +67,8 @@
 
 ## Поточний стан
 Крок 2 — проєкт створено з шаблону Empty Activity (Compose), package `com.example.numismat`.
-Hello World запущено на S25 Ultra. Далі — розбір структури проєкту та `MainActivity.kt`.
+Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) через Navigation Compose,
+кожен таб — порожній екран з назвою (як в Expo-версії).
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
 
 ## Журнал (що вивчено / зроблено)
@@ -77,3 +78,5 @@ Hello World запущено на S25 Ultra. Далі — розбір стру�
   (у коді є коментарі українською).
 - Іконка додатку: векторна adaptive icon з монетками (`drawable/ic_launcher_*.xml`).
 - Build types: debug vs release (`buildTypes` в `app/build.gradle.kts`, панель Build Variants).
+- Bottom tabs: `TabLayout.kt` (аналог Expo `_layout.tsx`: `Scaffold` + `TopAppBar` + `NavigationBar` + `NavHost`),
+ екрани в `screens/` (`HomeScreen`, `ListScreen`, `InfoScreen`). Залежності: `navigation-compose`, `material-icons-core`.

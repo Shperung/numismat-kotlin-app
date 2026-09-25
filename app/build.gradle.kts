@@ -44,6 +44,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    // Аналог `npx expo install expo-router` — навігація.
+    implementation(libs.androidx.navigation.compose)
+    // Аналог `@expo/vector-icons` — набір іконок Material.
+    implementation(libs.androidx.compose.material.icons.core)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
