@@ -1,6 +1,9 @@
 package com.example.numismat
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
@@ -13,29 +16,24 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.example.numismat.screens.HomeScreen
 import com.example.numismat.screens.InfoScreen
 import com.example.numismat.screens.ListScreen
+import kotlinx.coroutines.launch
 
-// Опис одного таба — як об'єкт { name, title, icon } для <Tabs.Screen>.
-// `data class` ≈ TS-тип `{ route: string; title: string; icon: IconType }`.
-// route — рядковий "шлях" екрана, як ім'я файлу в Expo Router ("index", "list", "info").
-data class Tab(val route: String, val title: String, val icon: ImageVector)
+// Опис одного таба — як об'єкт { title, icon } для <Tabs.Screen>.
+// `data class` ≈ TS-тип `{ title: string; icon: IconType }`.
+data class Tab(val title: String, val icon: ImageVector)
 
 // `listOf(...)` — незмінний масив (як `const tabs = [...] as const`).
 // Icons.Filled.Home ≈ <Ionicons name="home" />.
 val tabs = listOf(
-    Tab("index", "Головна", Icons.Filled.Home),
-    Tab("list", "Список", Icons.AutoMirrored.Filled.List),
-    Tab("info", "Інфо", Icons.Filled.Info),
+    Tab("Головна", Icons.Filled.Home),
+    Tab("Список", Icons.AutoMirrored.Filled.List),
+    Tab("Інфо", Icons.Filled.Info),
 )
 
 // Аналог src/app/_layout.tsx з <Tabs>.
@@ -43,48 +41,41 @@ val tabs = listOf(
 // У Compose це три окремі шматки, які ми збираємо в Scaffold:
 //   topBar    — хедер з назвою (як header у Tabs),
 //   bottomBar — NavigationBar (як tabBar),
-//   контент   — NavHost (як <Slot /> / місце, де рендериться активний екран).
+//   контент   — HorizontalPager (місце, де показується активний екран).
+//
+// Чому Pager, а не NavHost: NavHost при перемиканні знищує екран (unmount),
+// і стан у `remember` губиться. Pager тримає всі сторінки змонтованими —
+// як React Navigation Tabs і SwiftUI TabView: стан і ефекти неактивних табів живуть.
 // @OptIn — TopAppBar поки позначений як experimental API, тож явно погоджуємось.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabLayout() {
-    // NavController — "двигун" навігації, як об'єкт navigation / router з useRouter().
-    // remember... — створюється один раз і живе між рекомпозиціями (як useRef/useState).
-    val navController = rememberNavController()
+    // Стан пейджера — індекс активного таба (як useState<number>(0) для activeTab).
+    // pageCount — лямбда, що повертає кількість сторінок.
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    // Скоуп для корутин — перемикання сторінки це suspend-функція (як async),
+    // тож запускаємо її через scope.launch { ... } (як виклик async-функції без await).
+    val scope = rememberCoroutineScope()
 
-    // Поточний маршрут — аналог usePathname() / useSegments().
-    // `by` — делегат: читаємо значення стану напряму, без `.value`.
-    // Коли маршрут змінюється, TabLayout перемальовується (як ре-рендер при зміні стану).
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
-    // `?.` і `?:` — як `?.` і `??` у TS.
-    val currentTab = tabs.find { it.route == currentRoute } ?: tabs.first()
+    // Кнопка "Назад" з будь-якого таба повертає на "Головна", а вже звідти закриває додаток —
+    // як backBehavior: 'firstRoute' (типова поведінка Tabs у React Navigation на Android).
+    BackHandler(enabled = pagerState.currentPage != 0) {
+        scope.launch { pagerState.scrollToPage(0) }
+    }
 
     Scaffold(
         // Хедер з назвою поточного таба — як options.title у Tabs.Screen.
-        topBar = { TopAppBar(title = { Text(currentTab.title) }) },
+        topBar = { TopAppBar(title = { Text(tabs[pagerState.currentPage].title) }) },
         bottomBar = {
             // NavigationBar — нижня панель табів (Material 3).
             NavigationBar {
-                // forEach — як tabs.map(tab => <Tabs.Screen ... />) у JSX.
-                tabs.forEach { tab ->
+                // forEachIndexed — як tabs.map((tab, index) => ...) у JSX.
+                tabs.forEachIndexed { index, tab ->
                     NavigationBarItem(
                         // Активний таб підсвічується — Expo робить це сам, тут вказуємо вручну.
-                        selected = tab.route == currentRoute,
-                        onClick = {
-                            // Як router.navigate('/list'), але з налаштуваннями "як у табів":
-                            navController.navigate(tab.route) {
-                                // Не накопичувати екрани в стеку при перемиканні табів
-                                // (інакше "Назад" ходив би по всіх натиснутих табах).
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                // Повторний тап по активному табу не створює дубль екрана.
-                                launchSingleTop = true
-                                // Повертаючись на таб, відновити його стан (скрол тощо).
-                                restoreState = true
-                            }
-                        },
+                        selected = pagerState.currentPage == index,
+                        // Миттєве перемикання без анімації гортання — як звичайні таби.
+                        onClick = { scope.launch { pagerState.scrollToPage(index) } },
                         // tabBarIcon: ({ color, size }) => <Ionicons ... /> —
                         // колір/розмір Compose підставляє сам з теми.
                         icon = { Icon(tab.icon, contentDescription = tab.title) },
@@ -94,18 +85,21 @@ fun TabLayout() {
             }
         }
     ) { innerPadding ->
-        // NavHost — "карта маршрутів". В Expo її будує файлова система (src/app/*.tsx),
-        // тут реєструємо вручну: route -> composable-екран.
-        // startDestination = "index" — як index.tsx, що відкривається першим.
-        // padding(innerPadding) — щоб контент не залазив під хедер і таббар.
-        NavHost(
-            navController = navController,
-            startDestination = "index",
+        HorizontalPager(
+            state = pagerState,
+            // Свайп між табами вимкнено — перемикаємо тільки через таббар.
+            userScrollEnabled = false,
+            // Тримати змонтованими ще 2 сторінки поза екраном = всі 3 таби живуть завжди.
+            beyondViewportPageCount = tabs.size - 1,
+            // padding(innerPadding) — щоб контент не залазив під хедер і таббар.
             modifier = Modifier.padding(innerPadding),
-        ) {
-            composable("index") { HomeScreen() }
-            composable("list") { ListScreen() }
-            composable("info") { InfoScreen() }
+        ) { page ->
+            // `when` — як switch у TS, але це вираз.
+            when (page) {
+                0 -> HomeScreen()
+                1 -> ListScreen()
+                2 -> InfoScreen()
+            }
         }
     }
 }

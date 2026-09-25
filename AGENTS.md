@@ -67,8 +67,8 @@
 
 ## Поточний стан
 Крок 2 — проєкт створено з шаблону Empty Activity (Compose), package `com.example.numismat`.
-Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) через Navigation Compose,
-кожен таб — порожній екран з назвою (як в Expo-версії).
+Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) на `HorizontalPager`,
+кожен таб — порожній екран з назвою (як в Expo-версії); стан табів не губиться при перемиканні.
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
 
 ## Журнал (що вивчено / зроблено)
@@ -78,5 +78,8 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
   (у коді є коментарі українською).
 - Іконка додатку: векторна adaptive icon з монетками (`drawable/ic_launcher_*.xml`).
 - Build types: debug vs release (`buildTypes` в `app/build.gradle.kts`, панель Build Variants).
-- Bottom tabs: `TabLayout.kt` (аналог Expo `_layout.tsx`: `Scaffold` + `TopAppBar` + `NavigationBar` + `NavHost`),
+- Bottom tabs: `TabLayout.kt` (аналог Expo `_layout.tsx`: `Scaffold` + `TopAppBar` + `NavigationBar` + `HorizontalPager`),
  екрани в `screens/` (`HomeScreen`, `ListScreen`, `InfoScreen`). Залежності: `navigation-compose`, `material-icons-core`.
+- Стан табів: `NavHost` знищує екран при перемиканні (`remember` губиться), тому для табів — `HorizontalPager`
+ з `beyondViewportPageCount` (всі таби живуть, як у RN Tabs / SwiftUI TabView), свайп вимкнено,
+ "Назад" → на "Головна" (`BackHandler`). `navigation-compose` лишається для стеку Список → Деталі (крок 6).
