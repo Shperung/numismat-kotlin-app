@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.numismat.lib.initFirebase
 import com.example.numismat.ui.theme.NumismatTheme
 
 // Activity — точка входу додатку (аналог index.js + AppRegistry.registerComponent у RN).
@@ -21,6 +22,9 @@ class MainActivity : ComponentActivity() {
     // `Bundle?` — знак `?` означає "може бути null" (як `Bundle | null` у TS).
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Ініціалізація Firebase (див. lib/Firebase.kt) — до того, як екрани звернуться до db.
+        initFirebase(this)
 
         // Малювати під статус-баром і навігаційною панеллю (edge-to-edge),
         // відступи потім беремо з innerPadding нижче — як SafeAreaView у RN.

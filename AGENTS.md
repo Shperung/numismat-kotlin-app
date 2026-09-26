@@ -70,6 +70,8 @@
 Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) на `HorizontalPager`,
 кожен таб — порожній екран з назвою (як в Expo-версії); стан табів не губиться при перемиканні.
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
+Підключено Firestore (як в Expo-версії): колекція `coins` читається через `CoinsViewModel`
+і виводиться на Головній як JSON. Працює на S25 Ultra. Далі — тип `Coin` за реальними даними.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -83,3 +85,8 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
 - Стан табів: `NavHost` знищує екран при перемиканні (`remember` губиться), тому для табів — `HorizontalPager`
  з `beyondViewportPageCount` (всі таби живуть, як у RN Tabs / SwiftUI TabView), свайп вимкнено,
  "Назад" → на "Головна" (`BackHandler`). `navigation-compose` лишається для стеку Список → Деталі (крок 6).
+- Firebase Firestore (спільний проєкт з Expo-версією): конфіг у `local.properties` (`FIREBASE_*`, аналог `.env.local`)
+ → `BuildConfig` (аналог `EXPO_PUBLIC_*`); ініціалізація з коду через `FirebaseOptions` (без `google-services.json`).
+ `lib/Firebase.kt` (`initFirebase` у `MainActivity.onCreate`, `db`), `lib/FetchCollection.kt` (`suspend` + `.await()`),
+ `CoinsViewModel.kt` (`StateFlow`, аналог Context-провайдера), `HomeScreen` — `viewModel()` + `collectAsState()`, JSON через `JSONArray`.
+ Залежності: `firebase-bom` + `firebase-firestore`, `kotlinx-coroutines-play-services`, `lifecycle-viewmodel-compose`.
