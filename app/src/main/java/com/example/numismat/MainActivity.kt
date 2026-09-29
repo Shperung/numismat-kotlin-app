@@ -35,8 +35,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Тема (кольори, шрифти) — як ThemeProvider / Context.Provider.
             NumismatTheme {
-                // Кореневий навігатор з табами — як src/app/_layout.tsx в Expo Router.
-                TabLayout()
+                // Кореневий стек (таби + екран монети) — як src/app/_layout.tsx в Expo Router.
+                RootLayout()
             }
         }
     }
@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TabLayoutPreview() {
     NumismatTheme {
-        TabLayout()
+        // Порожній стан замість справжньої ViewModel — прев'ю не ходить у Firebase.
+        TabLayout(coinsState = CoinsState(), onCoinClick = {})
     }
 }

@@ -70,6 +70,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     // `viewModel()` у Compose — замість Context Provider (див. CoinsViewModel.kt).
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Аналог `expo-image`: `AsyncImage` вантажить картинку з URL і кешує її.
+    // Coil 3 сам не качає з мережі — потрібен окремий модуль з HTTP-клієнтом (OkHttp).
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -1,0 +1,31 @@
+package com.example.numismat.model
+
+// Аналог src/types/coin.ts.
+// `String?` ≈ `info?: string` — поле може бути відсутнім (null).
+// `= null` — значення за замовчуванням, тож при створенні його можна не передавати.
+data class Coin(
+    val id: String,
+    val country: String,
+    val name: String,
+    // У Firestore value буває і числом, і рядком ("10"), тому тримаємо як рядок — нам його лише показувати.
+    val value: String,
+    val currency: String,
+    val info: String? = null,
+    val avers: String? = null,
+    val revers: String? = null,
+)
+
+// В TS ми просто пишемо `coins as Coin[]` — це лише "обіцянка" компілятору, в рантаймі нічого не перевіряється.
+// Kotlin так не дозволяє, тому перекладаємо Map з Firestore в Coin руками.
+// `as? String` — безпечне приведення: якщо там не рядок, буде null (а не краш).
+// `?: ""` — якщо null, підставити порожній рядок (≈ `?? ''`).
+fun coinFromMap(map: Map<String, Any?>) = Coin(
+    id = map["id"] as String,
+    country = map["country"] as? String ?: "",
+    name = map["name"] as? String ?: "",
+    value = map["value"]?.toString() ?: "",
+    currency = map["currency"] as? String ?: "",
+    info = map["info"] as? String,
+    avers = map["avers"] as? String,
+    revers = map["revers"] as? String,
+)
