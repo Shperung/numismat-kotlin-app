@@ -47,7 +47,7 @@ val tabs = listOf(
 // і стан у `remember` губиться. Pager тримає всі сторінки змонтованими —
 // як React Navigation Tabs і SwiftUI TabView: стан і ефекти неактивних табів живуть.
 // @OptIn — TopAppBar поки позначений як experimental API, тож явно погоджуємось.
-// Параметри просто "прокидаються" далі в HomeScreen (prop drilling, як у React без Context).
+// Параметри просто "прокидаються" далі в HomeScreen і ListScreen (prop drilling, як у React без Context).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabLayout(coinsState: CoinsState, onCoinClick: (String) -> Unit) {
@@ -98,7 +98,7 @@ fun TabLayout(coinsState: CoinsState, onCoinClick: (String) -> Unit) {
             // `when` — як switch у TS, але це вираз.
             when (page) {
                 0 -> HomeScreen(coinsState, onCoinClick)
-                1 -> ListScreen()
+                1 -> ListScreen(onCoinClick)
                 2 -> InfoScreen()
             }
         }

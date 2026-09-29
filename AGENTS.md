@@ -71,10 +71,9 @@
 Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) на `HorizontalPager`,
 кожен таб — порожній екран з назвою (як в Expo-версії); стан табів не губиться при перемиканні.
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
-Підключено Firestore (як в Expo-версії): колекція `coins` читається через `CoinsViewModel`
-і виводиться на Головній як JSON. Працює на S25 Ultra. На «Списку» — `countries` як JSON (`CountriesViewModel`).
+Підключено Firestore (як в Expo-версії): колекція `coins` читається через `CoinsViewModel`.
 Тип `Coin`, Головна — `LazyColumn` з `CoinCard`, тап відкриває екран монети (стек поверх табів, як в Expo).
-Далі — фільтр монет за країною.
+«Список» — фільтр за країною: dropdown країн, при старті випадкова країна, монети запитуються з Firestore через `whereEqualTo`.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -100,3 +99,10 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
  `RootLayout.kt` — `NavHost` ("tabs" → `TabLayout`, "coin/{id}" → `CoinScreen`), аналог кореневого `Stack`.
  `viewModel()` всередині `composable {}` скоупиться на екран стеку, тому `CoinsViewModel` береться в `RootLayout`
  вище за `NavHost`, а стан передається параметрами (state hoisting). Залежності: `coil-compose`, `coil-network-okhttp`.
+- Coil 3.6.x потребує Kotlin 2.4 (`kotlin-stdlib` 2.4.10) → з компілятором 2.2.10 падало `Unresolved reference 'emptyList'`.
+ Тому Coil 3.3.0 (stdlib 2.2.0). Новіший Coil — лише після підняття версії `kotlin`.
+- Фільтр за країною: `model/Country.kt` (`name_ua` → `nameUa`), `lib/FetchCoinsByCountry.kt` (`whereEqualTo`),
+ `CountriesViewModel` (`copy`, `_state.update {}`, `randomOrNull()`; попередній запит скасовується через `Job.cancel()`
+ замість прапорця `active` з Expo; `CancellationException` не ловимо як помилку). Логіка у ViewModel, а не в `remember`,
+ бо при переході на екран монети таби виходять з композиції. `ListScreen` — `LazyColumn` з `item {}` (header / empty),
+ `CountryPicker` на `ExposedDropdownMenuBox` (+ перший `remember { mutableStateOf() }` для `expanded`).
