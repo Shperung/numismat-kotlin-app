@@ -10,21 +10,25 @@ import androidx.navigation.compose.rememberNavController
 import com.example.numismat.screens.CoinScreen
 
 // Аналог src/app/_layout.tsx:
-//   <CoinsProvider>
-//     <Stack>
-//       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-//       <Stack.Screen name="coin/[id]" options={{ title: 'Монета' }} />
-//     </Stack>
-//   </CoinsProvider>
+//   <CountriesProvider>
+//     <CoinsProvider>
+//       <Stack>
+//         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+//         <Stack.Screen name="coin/[id]" options={{ title: 'Монета' }} />
+//       </Stack>
+//     </CoinsProvider>
+//   </CountriesProvider>
 @Composable
 fun RootLayout() {
     // navController ≈ `router` з expo-router: через нього робимо navigate / back.
     val navController = rememberNavController()
 
-    // Беремо ViewModel тут, ВИЩЕ за NavHost — це роль <CoinsProvider>.
+    // Беремо ViewModel-и тут, ВИЩЕ за NavHost — це роль <CountriesProvider> і <CoinsProvider>.
     // Важливо: `viewModel()` всередині `composable(...) { }` дав би окремий екземпляр для кожного
     // екрана стеку (кожен екран має свій "скоуп"), і екран монети завантажив би монети вдруге.
     // Тому стан живе тут і передається в екрани параметрами.
+    val countriesState by viewModel<CountriesViewModel>().state.collectAsState()
+    // Усі монети — лише щоб екран монети знайшов потрібну за id (як `useCoins()` у coin/[id].tsx).
     val coinsState by viewModel<CoinsViewModel>().state.collectAsState()
 
     // NavHost ≈ <Stack>: показує один екран за раз, нові кладе зверху, "Назад" знімає верхній.
@@ -33,7 +37,7 @@ fun RootLayout() {
         // ≈ <Stack.Screen name="(tabs)" />: вкладені таби як один екран стеку.
         composable("tabs") {
             TabLayout(
-                coinsState = coinsState,
+                countriesState = countriesState,
                 // ≈ router.push(`/coin/${id}`).
                 onCoinClick = { id -> navController.navigate("coin/$id") },
             )

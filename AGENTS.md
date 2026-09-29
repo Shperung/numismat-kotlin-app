@@ -72,8 +72,9 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
 кожен таб — порожній екран з назвою (як в Expo-версії); стан табів не губиться при перемиканні.
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
 Підключено Firestore (як в Expo-версії): колекція `coins` читається через `CoinsViewModel`.
-Тип `Coin`, Головна — `LazyColumn` з `CoinCard`, тап відкриває екран монети (стек поверх табів, як в Expo).
-«Список» — фільтр за країною: dropdown країн, при старті випадкова країна, монети запитуються з Firestore через `whereEqualTo`.
+Країни — спільний `CountriesViewModel` (як `CountriesProvider` в Expo). Головна — випадкова монета випадкової країни
+(`CoinDetails`). «Список» — фільтр за країною: dropdown, при старті випадкова країна, монети через `whereEqualTo`,
+тап по `CoinCard` відкриває екран монети (стек поверх табів, як в Expo).
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -106,3 +107,9 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
  замість прапорця `active` з Expo; `CancellationException` не ловимо як помилку). Логіка у ViewModel, а не в `remember`,
  бо при переході на екран монети таби виходять з композиції. `ListScreen` — `LazyColumn` з `item {}` (header / empty),
  `CountryPicker` на `ExposedDropdownMenuBox` (+ перший `remember { mutableStateOf() }` для `expanded`).
+- Випадкова монета на Головній (як коміт "add random coin" в Expo): поле `year` у `Coin`, `components/CoinDetails.kt`
+ (спільний для Головної і `CoinScreen`, параметр `modifier: Modifier = Modifier`). `CountriesViewModel` тепер лише
+ довідник країн (у `RootLayout`, передається в таби параметром), логіка фільтра — у `ListViewModel`,
+ випадкова монета — у `HomeViewModel`. `LaunchedEffect(countries)` ≈ `useEffect(..., [countries])`,
+ ViewModel сам стежить, щоб вибір робився один раз. `randomOrNull()` замість `pickRandom`, `?: return`,
+ smart cast через локальну `val` (з делегатом `by` не працює).

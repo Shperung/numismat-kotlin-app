@@ -47,7 +47,7 @@ fun CoinCard(coin: Coin, onClick: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(coin.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 // "${...}" — шаблонний рядок, як `${coin.value} ${coin.currency}` у TS.
-                Text("${coin.value} ${coin.currency}")
+                Text("${coin.value} ${coin.currency} · ${coin.year}")
                 // Замість '#666' беремо "приглушений" колір з теми — він підлаштується під темну тему.
                 Text(coin.country, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }

@@ -1,39 +1,40 @@
 package com.example.numismat.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.numismat.CoinsState
-import com.example.numismat.components.CoinCard
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.numismat.CountriesState
+import com.example.numismat.HomeViewModel
+import com.example.numismat.components.CoinDetails
 
-// Аналог src/app/(tabs)/index.tsx.
-// Раніше екран сам брав дані через `viewModel()`. Тепер отримує їх параметрами (як пропси):
-// стан монет потрібен і тут, і на екрані монети, тому він живе вище — в RootLayout.
-// Це і є state hoisting ("підняття стану"), як lifting state up у React.
-// `(String) -> Unit` ≈ `(id: string) => void`.
+// Аналог src/app/(tabs)/index.tsx: випадкова монета випадкової країни.
+// `countriesState` ≈ `useCountries()` — приходить параметром з RootLayout.
 @Composable
-fun HomeScreen(state: CoinsState, onCoinClick: (String) -> Unit) {
-    // Ранній return, як `if (loading || error) return <Text>...</Text>` в Expo.
-    if (state.loading || state.error != null) {
-        Text(state.error ?: "Завантаження...", modifier = Modifier.padding(16.dp))
-        return
+fun HomeScreen(countriesState: CountriesState) {
+    val viewModel = viewModel<HomeViewModel>()
+    val state by viewModel.state.collectAsState()
+
+    // LaunchedEffect(key) ≈ useEffect(() => {...}, [countries]): запускається при появі на екрані
+    // і щоразу, коли змінився key. Спершу countries порожні, після завантаження — спрацює ще раз.
+    LaunchedEffect(countriesState.countries) {
+        viewModel.showRandomCoin(countriesState.countries)
     }
 
-    // LazyColumn ≈ <FlatList>: рендерить лише видимі елементи.
-    // contentPadding ≈ contentContainerStyle={{ padding: 16 }}, spacedBy(12.dp) ≈ gap: 12.
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // items(data, key) { item -> ... } ≈ data + keyExtractor + renderItem.
-        items(state.coins, key = { it.id }) { coin ->
-            CoinCard(coin, onClick = { onCoinClick(coin.id) })
-        }
+    // Копія в локальну змінну — щоб спрацював smart cast: після `coin != null` Kotlin знає, що це `Coin`.
+    // З `state.coin` напряму так не вийде: `state` — делегат (`by`), і компілятор не гарантує, що значення не зміниться.
+    val coin = state.coin
+    if (coin != null) {
+        CoinDetails(coin)
+    } else {
+        // ≈ `countriesError ?? error ?? (coin === null ? 'Монет не знайдено' : 'Завантаження...')`.
+        val message = countriesState.error ?: state.error
+            ?: if (state.loading) "Завантаження..." else "Монет не знайдено"
+        Text(message, modifier = Modifier.padding(16.dp))
     }
 }

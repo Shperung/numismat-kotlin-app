@@ -14,6 +14,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,21 +23,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.numismat.CountriesViewModel
+import com.example.numismat.CountriesState
+import com.example.numismat.ListViewModel
 import com.example.numismat.components.CoinCard
 import com.example.numismat.model.Country
 
 // Аналог src/app/(tabs)/list.tsx: фільтр монет за країною.
-// `onCoinClick` — як і на Головній, тап по картці відкриває екран монети.
+// `countriesState` ≈ `useCountries()`, `onCoinClick` — тап по картці відкриває екран монети.
 @Composable
-fun ListScreen(onCoinClick: (String) -> Unit) {
+fun ListScreen(countriesState: CountriesState, onCoinClick: (String) -> Unit) {
     // Тут `viewModel()` можна викликати прямо в екрані: цей стан потрібен лише "Списку".
-    val viewModel = viewModel<CountriesViewModel>()
+    val viewModel = viewModel<ListViewModel>()
     val state by viewModel.state.collectAsState()
 
-    // ≈ `if (error) return ...; if (!country) return <Text>Завантаження...</Text>`.
-    if (state.error != null || state.country == null) {
-        Text(state.error ?: "Завантаження...", modifier = Modifier.padding(16.dp))
+    // ≈ useEffect(() => setCountry(pickRandom(countries)?.id), [countries]).
+    LaunchedEffect(countriesState.countries) {
+        viewModel.selectRandomCountry(countriesState.countries)
+    }
+
+    // ≈ `if (countriesError || error) return ...; if (!country) return <Text>Завантаження...</Text>`.
+    if (countriesState.error != null || state.error != null || state.country == null) {
+        Text(countriesState.error ?: state.error ?: "Завантаження...", modifier = Modifier.padding(16.dp))
         return
     }
 
@@ -47,7 +54,7 @@ fun ListScreen(onCoinClick: (String) -> Unit) {
         // `item { }` — один довільний елемент списку. Перший = ListHeaderComponent.
         item {
             CountryPicker(
-                countries = state.countries,
+                countries = countriesState.countries,
                 selectedId = state.country,
                 onSelect = { id -> viewModel.selectCountry(id) },
             )

@@ -50,7 +50,7 @@ val tabs = listOf(
 // Параметри просто "прокидаються" далі в HomeScreen і ListScreen (prop drilling, як у React без Context).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabLayout(coinsState: CoinsState, onCoinClick: (String) -> Unit) {
+fun TabLayout(countriesState: CountriesState, onCoinClick: (String) -> Unit) {
     // Стан пейджера — індекс активного таба (як useState<number>(0) для activeTab).
     // pageCount — лямбда, що повертає кількість сторінок.
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -97,8 +97,8 @@ fun TabLayout(coinsState: CoinsState, onCoinClick: (String) -> Unit) {
         ) { page ->
             // `when` — як switch у TS, але це вираз.
             when (page) {
-                0 -> HomeScreen(coinsState, onCoinClick)
-                1 -> ListScreen(onCoinClick)
+                0 -> HomeScreen(countriesState)
+                1 -> ListScreen(countriesState, onCoinClick)
                 2 -> InfoScreen()
             }
         }

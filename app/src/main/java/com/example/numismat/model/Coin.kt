@@ -10,6 +10,8 @@ data class Coin(
     // У Firestore value буває і числом, і рядком ("10"), тому тримаємо як рядок — нам його лише показувати.
     val value: String,
     val currency: String,
+    // Як і value — лише для показу, тож рядок.
+    val year: String,
     val info: String? = null,
     val avers: String? = null,
     val revers: String? = null,
@@ -25,6 +27,7 @@ fun coinFromMap(map: Map<String, Any?>) = Coin(
     name = map["name"] as? String ?: "",
     value = map["value"]?.toString() ?: "",
     currency = map["currency"] as? String ?: "",
+    year = map["year"]?.toString() ?: "",
     info = map["info"] as? String,
     avers = map["avers"] as? String,
     revers = map["revers"] as? String,
