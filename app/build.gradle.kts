@@ -66,6 +66,8 @@ dependencies {
     // Аналог `npm i firebase` — BOM (bill of materials) сам підбирає сумісні версії модулів Firebase.
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
+    // Аналог `firebase/ai` — Firebase AI Logic (Gemini). Версію теж підбирає BOM.
+    implementation(libs.firebase.ai)
     // Дає `.await()` для Firebase Task — щоб писати `getDocs(...)` як `await` без колбеків.
     implementation(libs.kotlinx.coroutines.play.services)
     // `viewModel()` у Compose — замість Context Provider (див. CoinsViewModel.kt).

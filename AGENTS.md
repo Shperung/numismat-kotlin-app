@@ -75,6 +75,7 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
 Країни — спільний `CountriesViewModel` (як `CountriesProvider` в Expo). Головна — випадкова монета випадкової країни
 (`CoinDetails`). «Список» — фільтр за країною: dropdown, при старті випадкова країна, монети через `whereEqualTo`,
 тап по `CoinCard` відкриває екран монети (стек поверх табів, як в Expo).
+У `CoinDetails` — кнопка «Дізнатись цікаві факти» (Firebase AI Logic, Gemini) — працює на S25 Ultra, поки одна відповідь без чату, markdown не рендериться.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -113,3 +114,12 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
  випадкова монета — у `HomeViewModel`. `LaunchedEffect(countries)` ≈ `useEffect(..., [countries])`,
  ViewModel сам стежить, щоб вибір робився один раз. `randomOrNull()` замість `pickRandom`, `?: return`,
  smart cast через локальну `val` (з делегатом `by` не працює).
+- AI-факти про монету (як коміт "add ai feature" в Expo): `firebase-ai` з BOM (17.17.0, stdlib 2.0.21 — сумісно).
+ `lib/Ai.kt` — `startCoinChat(coin)`: `Firebase.ai(backend = GenerativeBackend.agentPlatform("global"))`
+ (`vertexAI` — deprecated), модель `gemini-3.5-flash-lite`, `systemInstruction = content { text(...) }`, `.startChat()`.
+ У `CoinDetails` — `remember { mutableStateOf() }` для answer/loading, `rememberCoroutineScope().launch` для запиту,
+ `Button` + `CircularProgressIndicator`. Налаштування консолі (App Check Unenforced для AI Logic, Cloud Billing) —
+ спільні з Expo-версією, бо проєкт Firebase той самий.
+ На емуляторі (робочий Mac) — `UnknownException`, причина в `e.cause`: `UnknownHostException firebasevertexai.googleapis.com`
+ (мережа/DNS емулятора; Firestore при цьому "працює" з офлайн-кешу). На S25 Ultra — ок. Для діагностики в `catch`
+ лишено `Log.e("AI", ...)` + `e.cause` у тексті помилки.
