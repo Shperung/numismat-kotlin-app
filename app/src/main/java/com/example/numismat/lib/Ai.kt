@@ -1,6 +1,7 @@
 package com.example.numismat.lib
 
 import com.example.numismat.model.Coin
+import com.example.numismat.model.toJson
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
@@ -15,12 +16,11 @@ fun startCoinChat(coin: Coin) = ai.generativeModel(
     modelName = "gemini-3.5-flash-lite",
     // `content { text(...) }` — повідомлення для моделі (в JS можна просто рядок).
     systemInstruction = content {
-        // `$coin` — data class сам перетворюється на рядок: "Coin(id=..., name=..., ...)".
-        // Для моделі цього досить, JSON.stringify як у TS тут не потрібен.
+        // Той самий промпт, що на numismat-server (systemPrompt). `${coin.toJson()}` ≈ `${JSON.stringify(coin)}`.
         text(
             "Ти досвідчений нумізмат. Відповідай українською, коротко і цікаво. " +
-                "Розмова про монету: $coin, які факти про ню є, чи вона ще в вжитку, " +
-                "що за ню можна купити або можна було купити у рік виходу"
+                "Розмова про монету: ${coin.toJson()}, які факти про неї є, чи вона ще в вжитку, " +
+                "що за неї можна купити або можна було купити у рік виходу"
         )
     },
 ).startChat()

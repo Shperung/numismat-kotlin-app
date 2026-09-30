@@ -76,10 +76,11 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
 Країни — спільний `CountriesViewModel` (як `CountriesProvider` в Expo). Головна — випадкова монета випадкової країни
 (`CoinDetails`). «Список» — фільтр за країною: dropdown, при старті випадкова країна, монети через `whereEqualTo`,
 тап по `CoinCard` відкриває екран монети (стек поверх табів, як в Expo).
-AI-кнопки в `CoinDetails` — список `aiButtons` (`AiButton(id, title, logo, ask)`), одна під одною, спільна відповідь:
-обидві працюють на S25 Ultra: «Запитати в Gemini» (Firebase AI Logic) і «Запитати в Groq»
-(`numismat-server` → `https://inua.tetiana-redko.com/chat`, provider `groq-gpt-oss`).
-Поки одна відповідь без чату, markdown не рендериться.
+AI-кнопки в `CoinDetails` (`AiButton(id, title, logo, ask)`) — акордеон, як в Expo: відповідь під своєю кнопкою,
+зберігається (`answers: Map`, `open` / `loading: Set`), повторний тап ховає/показує, помилку — перезапитує,
+запити паралельні. Статична «Запитати в Gemini» (Firebase AI Logic) + динамічні з `GET /providers`
+(`fetchProviders`, logo — URL) → `askServer(id, …)`. Відповіді — markdown (`MarkdownText`).
+Gemini і Groq (одна відповідь) раніше перевірено на S25 Ultra; акордеон і markdown — ще не запускались. Поки без чату.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -135,3 +136,12 @@ AI-кнопки в `CoinDetails` — список `aiButtons` (`AiButton(id, tit
  `CoinDetails`: `private data class AiButton` з полем `ask: suspend (Coin) -> String?`, trailing lambda,
  `loadingId` замість `loading`, `OutlinedButton` + `Image(painterResource(R.drawable.ai_groq))` + `Modifier.weight(1f)`.
  Логотипи скопійовано з Expo в `res/drawable/ai_gemini.png`, `ai_groq.png` (імена ресурсів — лише a-z, 0-9, `_`).
+- Кнопки зі списку сервера + акордеон (як коміт "add list of buttons" в Expo): `Provider` + `fetchProviders()`
+ (`JSONArray` → `List(size) { i -> }`), `toButton(p)`. `logo: Any` — `R.drawable.ai_gemini` або URL: Coil `AsyncImage`
+ приймає обидва (як `expo-image`), `ai_groq.png` видалено. Стан — незмінні `Map`/`Set` + присвоєння нової копії
+ (≈ `{ ...a, [id]: … }`); у корутині спершу `await` відповіді, потім `answers = answers + (id to …)` (свіжа Map).
+ `LaunchedEffect(Unit)` ≈ `useEffect(..., [])`. `AiItem`: `OutlinedCard` + `Row.clickable` (клікабельний лише рядок),
+ `when { }` без аргумента замість вкладених тернарників, стрілки `KeyboardArrowUp/Down`.
+- Markdown: `com.mikepenz:multiplatform-markdown-renderer-m3` 0.38.1 (остання під Kotlin 2.2; 0.39+ — stdlib 2.3+).
+ `components/MarkdownText.kt` — `Markdown(content)` з `markdownTypography(h1 = titleLarge, …)`,
+ бо за замовчуванням h1 = displayLarge (завеликий). Рендерить через `Column` (не lazy) → ок усередині `verticalScroll`.

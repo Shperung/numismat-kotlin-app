@@ -76,6 +76,9 @@ dependencies {
     // Coil 3 сам не качає з мережі — потрібен окремий модуль з HTTP-клієнтом (OkHttp).
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    // Аналог `react-native-marked`: рендер markdown у Compose (m3 — стилі з теми Material 3).
+    // 0.38.1 — остання версія під Kotlin 2.2 (новіші потребують Kotlin 2.3+, як було з Coil).
+    implementation(libs.markdown.renderer.m3)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

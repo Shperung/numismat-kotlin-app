@@ -1,5 +1,7 @@
 package com.example.numismat.model
 
+import org.json.JSONObject
+
 // Аналог src/types/coin.ts.
 // `String?` ≈ `info?: string` — поле може бути відсутнім (null).
 // `= null` — значення за замовчуванням, тож при створенні його можна не передавати.
@@ -31,4 +33,20 @@ fun coinFromMap(map: Map<String, Any?>) = Coin(
     info = map["info"] as? String,
     avers = map["avers"] as? String,
     revers = map["revers"] as? String,
+)
+
+// Extension-функція: "дописуємо" метод до класу Coin, не змінюючи сам клас (у TS так не можна).
+// ≈ JSON-об'єкт монети з полями як у TS-типі Coin — для numismat-server і для промпту Gemini.
+fun Coin.toJson() = JSONObject(
+    mapOf(
+        "id" to id,
+        "country" to country,
+        "name" to name,
+        "value" to value,
+        "currency" to currency,
+        "year" to year,
+        "info" to info,
+        "avers" to avers,
+        "revers" to revers,
+    )
 )
