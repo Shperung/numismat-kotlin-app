@@ -65,6 +65,7 @@
 8. [ ] Room: збереження між запусками, корутини
 9. [ ] Фото монет (камера/галерея) + Coil
 10. [ ] Пошук, фільтри, статистика
+11. [ ] AI «цікаві факти»: Gemini (Firebase AI Logic) ✓ → кнопка Groq через `numismat-server` ✓ → markdown → чат з контекстом → інші провайдери
 
 ## Поточний стан
 Крок 2 — проєкт створено з шаблону Empty Activity (Compose), package `com.example.numismat`.
@@ -75,7 +76,10 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
 Країни — спільний `CountriesViewModel` (як `CountriesProvider` в Expo). Головна — випадкова монета випадкової країни
 (`CoinDetails`). «Список» — фільтр за країною: dropdown, при старті випадкова країна, монети через `whereEqualTo`,
 тап по `CoinCard` відкриває екран монети (стек поверх табів, як в Expo).
-У `CoinDetails` — кнопка «Дізнатись цікаві факти» (Firebase AI Logic, Gemini) — працює на S25 Ultra, поки одна відповідь без чату, markdown не рендериться.
+AI-кнопки в `CoinDetails` — список `aiButtons` (`AiButton(id, title, logo, ask)`), одна під одною, спільна відповідь:
+обидві працюють на S25 Ultra: «Запитати в Gemini» (Firebase AI Logic) і «Запитати в Groq»
+(`numismat-server` → `https://inua.tetiana-redko.com/chat`, provider `groq-gpt-oss`).
+Поки одна відповідь без чату, markdown не рендериться.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -123,3 +127,11 @@ Hello World запущено на S25 Ultra. Додано bottom tabs (Голо�
  На емуляторі (робочий Mac) — `UnknownException`, причина в `e.cause`: `UnknownHostException firebasevertexai.googleapis.com`
  (мережа/DNS емулятора; Firestore при цьому "працює" з офлайн-кешу). На S25 Ultra — ок. Для діагностики в `catch`
  лишено `Log.e("AI", ...)` + `e.cause` у тексті помилки.
+- Groq через спільний бекенд `numismat-server` (`/Users/viktor_kravchuk/traning/numismat-server`, опис — в AGENTS.md Expo-проєкту).
+ Контракт: `POST /chat { provider, coin, messages: [{ role, content }] } → { text }`, помилка → `{ error }`.
+ `lib/NumismatServer.kt` — `askServer(...)` без нових бібліотек: `HttpURLConnection` (≈ `fetch`) + `org.json`
+ (`JSONObject(mapOf(...))`), extension-функція `Coin.toJson()`. Мережа на UI-потоці заборонена
+ (`NetworkOnMainThreadException`) → `withContext(Dispatchers.IO)`. Дозвіл `INTERNET` явно в `AndroidManifest.xml`.
+ `CoinDetails`: `private data class AiButton` з полем `ask: suspend (Coin) -> String?`, trailing lambda,
+ `loadingId` замість `loading`, `OutlinedButton` + `Image(painterResource(R.drawable.ai_groq))` + `Modifier.weight(1f)`.
+ Логотипи скопійовано з Expo в `res/drawable/ai_gemini.png`, `ai_groq.png` (імена ресурсів — лише a-z, 0-9, `_`).
