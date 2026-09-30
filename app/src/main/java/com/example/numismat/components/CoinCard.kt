@@ -59,7 +59,7 @@ fun CoinCard(coin: Coin, onClick: () -> Unit) {
 // В Expo це <Image style={{ width, height, borderRadius: size / 2 }} contentFit="cover" />.
 // `url: String?` — фото може не бути; тоді AsyncImage просто нічого не намалює, лишиться сірий фон.
 @Composable
-fun CoinPhoto(url: String?, size: Dp) {
+fun CoinPhoto(url: String?, size: Dp, modifier: Modifier = Modifier) {
     AsyncImage(
         model = url,
         // Опис для screen reader (≈ accessibilityLabel). null — картинка декоративна.
@@ -68,9 +68,11 @@ fun CoinPhoto(url: String?, size: Dp) {
         contentScale = ContentScale.Crop,
         // Порядок модифікаторів важливий: спочатку розмір, потім обрізати по колу, потім фон.
         // clip(CircleShape) ≈ borderRadius: size / 2 + overflow: 'hidden'.
+        // `modifier` ззовні (напр. clickable) — після clip, щоб ripple від тапу теж був круглим.
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
+            .then(modifier)
             .background(Color(0xFFEEEEEE)),
     )
 }

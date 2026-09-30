@@ -81,6 +81,7 @@ AI-кнопки в `CoinDetails` (`AiButton(id, title, logo, ask)`) — акор
 запити паралельні. Статична «Запитати в Gemini» (Firebase AI Logic) + динамічні з `GET /providers`
 (`fetchProviders`, logo — URL) → `askServer(id, …)`. Відповіді — markdown (`MarkdownText`).
 Gemini і Groq (одна відповідь) раніше перевірено на S25 Ultra; акордеон і markdown — ще не запускались. Поки без чату.
+Тап по фото монети → `PhotoViewer` (повноекранний `Dialog`, pinch zoom 1–5×, pan коли збільшено, подвійний тап — скидання).
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -145,3 +146,10 @@ Gemini і Groq (одна відповідь) раніше перевірено �
 - Markdown: `com.mikepenz:multiplatform-markdown-renderer-m3` 0.38.1 (остання під Kotlin 2.2; 0.39+ — stdlib 2.3+).
  `components/MarkdownText.kt` — `Markdown(content)` з `markdownTypography(h1 = titleLarge, …)`,
  бо за замовчуванням h1 = displayLarge (завеликий). Рендерить через `Column` (не lazy) → ок усередині `verticalScroll`.
+- Перегляд фото з pinch zoom (як коміт "add pinch zoom" в Expo, там — модальний роут `photo` + gesture-handler + reanimated).
+ Тут без нових бібліотек і без роуту: `components/PhotoViewer.kt` — `Dialog` (≈ RN `<Modal>`,
+ `DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)` — на весь екран), "Назад" закриває сам.
+ Стан `photo: String?` у `CoinDetails`, `CoinPhoto` отримав `modifier` (`.then(modifier)` після `clip` — круглий ripple).
+ Жести: `pointerInput { detectTransformGestures }` (pinch + pan разом; zoom/pan — зміна за кадр, тож savedScale не потрібні),
+ окремий `pointerInput { detectTapGestures(onDoubleTap) }`. `Animatable` ≈ `useSharedValue` (`snapTo` / `animateTo` ≈ withTiming),
+ `graphicsLayer { scaleX; translationX }` ≈ `useAnimatedStyle`. Кнопка закриття — `IconButton` + `statusBarsPadding()`.

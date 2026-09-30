@@ -86,6 +86,8 @@ fun CoinDetails(coin: Coin, modifier: Modifier = Modifier) {
     var loading by remember { mutableStateOf(setOf<String>()) }
     var providers by remember { mutableStateOf(listOf<Provider>()) }
     var providersError by remember { mutableStateOf<String?>(null) }
+    // URL відкритого на весь екран фото; null — переглядач закритий.
+    var photo by remember { mutableStateOf<String?>(null) }
     // Запит до AI — suspend-функція, тож потрібна корутина. Цей scope скасує запити, якщо компонент зникне з екрана.
     val scope = rememberCoroutineScope()
 
@@ -140,8 +142,10 @@ fun CoinDetails(coin: Coin, modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         ) {
-            CoinPhoto(coin.avers, 150.dp)
-            CoinPhoto(coin.revers, 150.dp)
+            // ≈ [coin.avers, coin.revers].map((uri) => <Link href={{ pathname: '/photo', ... }} disabled={!uri}>).
+            listOf(coin.avers, coin.revers).forEach { uri ->
+                CoinPhoto(uri, 150.dp, Modifier.clickable(enabled = uri != null) { photo = uri })
+            }
         }
         Text(coin.name, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text("${coin.value} ${coin.currency}")
@@ -172,6 +176,12 @@ fun CoinDetails(coin: Coin, modifier: Modifier = Modifier) {
                 Text("Помилка завантаження моделей: $error", color = MaterialTheme.colorScheme.error)
             }
         }
+    }
+
+    // ≈ <Modal visible={photo != null}>: поки photo не null — показуємо переглядач поверх екрана.
+    val openPhoto = photo
+    if (openPhoto != null) {
+        PhotoViewer(openPhoto, onDismiss = { photo = null })
     }
 }
 
