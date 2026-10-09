@@ -7,6 +7,7 @@ import com.example.numismat.model.Coin
 import com.example.numismat.model.coinFromMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // Аналог типу CoinsState з coins-provider.tsx.
@@ -37,6 +38,15 @@ class CoinsViewModel : ViewModel() {
             } catch (e: Exception) {
                 CoinsState(loading = false, error = e.toString())
             }
+        }
+    }
+
+    // Збережена в адмінці монета — щоб екран монети одразу показав актуальну (у вебі — `updateTag("coins")`).
+    // Замінюємо за id або дописуємо нову замість повторного завантаження всієї колекції.
+    fun save(coin: Coin) {
+        _state.update { state ->
+            val exists = state.coins.any { it.id == coin.id }
+            state.copy(coins = if (exists) state.coins.map { if (it.id == coin.id) coin else it } else state.coins + coin)
         }
     }
 }

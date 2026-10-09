@@ -16,7 +16,7 @@ import com.example.numismat.components.CoinDetails
 // Аналог src/app/(tabs)/index.tsx: випадкова монета випадкової країни.
 // `countriesState` ≈ `useCountries()` — приходить параметром з RootLayout.
 @Composable
-fun HomeScreen(countriesState: CountriesState) {
+fun HomeScreen(countriesState: CountriesState, onEditCoin: ((String) -> Unit)?) {
     val viewModel = viewModel<HomeViewModel>()
     val state by viewModel.state.collectAsState()
 
@@ -30,7 +30,7 @@ fun HomeScreen(countriesState: CountriesState) {
     // З `state.coin` напряму так не вийде: `state` — делегат (`by`), і компілятор не гарантує, що значення не зміниться.
     val coin = state.coin
     if (coin != null) {
-        CoinDetails(coin)
+        CoinDetails(coin, onEdit = onEditCoin)
     } else {
         // ≈ `countriesError ?? error ?? (coin === null ? 'Монет не знайдено' : 'Завантаження...')`.
         val message = countriesState.error ?: state.error

@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,8 +75,9 @@ private fun toButton(p: Provider) = AiButton(p.id, "Запитати в ${p.titl
 // Використовується на екрані монети і на Головній (випадкова монета).
 // `modifier: Modifier = Modifier` — домовленість у Compose: кожен компонент приймає modifier ззовні
 // (≈ проп `style`), щоб батько міг додати відступи/розміри. `= Modifier` — порожній за замовчуванням.
+// `onEdit` — null, якщо адмін не увійшов: тоді кнопки «Редагувати» немає (у вебі — `EditLink` з `hasSession()`).
 @Composable
-fun CoinDetails(coin: Coin, modifier: Modifier = Modifier) {
+fun CoinDetails(coin: Coin, modifier: Modifier = Modifier, onEdit: ((String) -> Unit)? = null) {
     // В Expo — Record<id, ...>. Тут:
     //   answers — Map<id, Answer> (≈ Record),
     //   open / loading — Set<id>: "id є в множині" ≈ `open[id] === true`.
@@ -137,6 +139,12 @@ fun CoinDetails(coin: Coin, modifier: Modifier = Modifier) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (onEdit != null) {
+            // align(Alignment.End) — лише цей елемент праворуч (≈ alignSelf: 'flex-end').
+            TextButton(onClick = { onEdit(coin.id) }, modifier = Modifier.align(Alignment.End)) {
+                Text("✏️ Редагувати")
+            }
+        }
         // spacedBy(12.dp, Alignment.CenterHorizontally) ≈ gap: 12 + justifyContent: 'center'.
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),

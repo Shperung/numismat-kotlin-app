@@ -7,7 +7,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -19,22 +20,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.numismat.model.Coin
+import com.example.numismat.screens.AdminScreen
 import com.example.numismat.screens.HomeScreen
-import com.example.numismat.screens.InfoScreen
 import com.example.numismat.screens.ListScreen
+import com.example.numismat.screens.LoginScreen
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.launch
 
 // Опис одного таба — як об'єкт { title, icon } для <Tabs.Screen>.
 // `data class` ≈ TS-тип `{ title: string; icon: IconType }`.
 data class Tab(val title: String, val icon: ImageVector)
-
-// `listOf(...)` — незмінний масив (як `const tabs = [...] as const`).
-// Icons.Filled.Home ≈ <Ionicons name="home" />.
-val tabs = listOf(
-    Tab("Головна", Icons.Filled.Home),
-    Tab("Список", Icons.AutoMirrored.Filled.List),
-    Tab("Інфо", Icons.Filled.Info),
-)
 
 // Аналог src/app/_layout.tsx з <Tabs>.
 // В Expo Router <Tabs> сам малює хедер, таббар і перемикає екрани.
@@ -50,7 +46,20 @@ val tabs = listOf(
 // Параметри просто "прокидаються" далі в HomeScreen і ListScreen (prop drilling, як у React без Context).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TabLayout(countriesState: CountriesState, onCoinClick: (String) -> Unit) {
+fun TabLayout(
+    countriesState: CountriesState,
+    user: FirebaseUser?,
+    onCoinClick: (String) -> Unit,
+    onCoinAdded: (Coin) -> Unit,
+    onEditCoin: ((String) -> Unit)?,
+) {
+    // `listOf(...)` — незмінний масив. Icons.Filled.Home ≈ <Ionicons name="home" />.
+    // Третій таб залежить від сесії, як у вебі: "Увійти" ↔ "Адмінка" (тому список — у функції, а не глобально).
+    val tabs = listOf(
+        Tab("Головна", Icons.Filled.Home),
+        Tab("Список", Icons.AutoMirrored.Filled.List),
+        if (user != null) Tab("Адмінка", Icons.Filled.Settings) else Tab("Увійти", Icons.Filled.Person),
+    )
     // Стан пейджера — індекс активного таба (як useState<number>(0) для activeTab).
     // pageCount — лямбда, що повертає кількість сторінок.
     val pagerState = rememberPagerState(pageCount = { tabs.size })
@@ -97,9 +106,10 @@ fun TabLayout(countriesState: CountriesState, onCoinClick: (String) -> Unit) {
         ) { page ->
             // `when` — як switch у TS, але це вираз.
             when (page) {
-                0 -> HomeScreen(countriesState)
+                0 -> HomeScreen(countriesState, onEditCoin)
                 1 -> ListScreen(countriesState, onCoinClick)
-                2 -> InfoScreen()
+                // `if` — теж вираз; smart cast: у гілці `user != null` Kotlin знає, що user не null.
+                2 -> if (user != null) AdminScreen(user, countriesState.countries, onCoinAdded) else LoginScreen()
             }
         }
     }

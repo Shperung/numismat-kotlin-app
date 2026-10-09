@@ -4,7 +4,9 @@ import android.content.Context
 import com.example.numismat.BuildConfig
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 // Аналог src/lib/firebase.ts:
 //   const app = initializeApp({ apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY, ... });
@@ -27,3 +29,9 @@ fun initFirebase(context: Context) {
 // `export const db = getFirestore(app)`.
 // `by lazy` — значення створюється при першому зверненні (вже після initFirebase) і кешується.
 val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
+
+// ≈ `export const auth = getAuth(app)`.
+val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+
+// ≈ `export const storage = getStorage(app)`; бакет — з FirebaseOptions.
+val storage: FirebaseStorage by lazy { FirebaseStorage.getInstance() }

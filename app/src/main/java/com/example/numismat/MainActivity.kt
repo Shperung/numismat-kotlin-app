@@ -49,6 +49,6 @@ class MainActivity : ComponentActivity() {
 fun TabLayoutPreview() {
     NumismatTheme {
         // Порожній стан замість справжньої ViewModel — прев'ю не ходить у Firebase.
-        TabLayout(countriesState = CountriesState(), onCoinClick = {})
+        TabLayout(countriesState = CountriesState(), user = null, onCoinClick = {}, onCoinAdded = {}, onEditCoin = null)
     }
 }

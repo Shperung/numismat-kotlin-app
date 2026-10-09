@@ -21,7 +21,7 @@ import com.example.numismat.model.Coin
 // `coin: Coin?` — може бути null, якщо монету не знайдено.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CoinScreen(coin: Coin?, onBack: () -> Unit) {
+fun CoinScreen(coin: Coin?, onBack: () -> Unit, onEdit: ((String) -> Unit)?) {
     // Stack в Expo сам малює хедер зі стрілкою "Назад" (options: { title: 'Монета' }).
     // У Compose хедер збираємо самі: Scaffold + TopAppBar + кнопка-стрілка.
     Scaffold(
@@ -42,7 +42,7 @@ fun CoinScreen(coin: Coin?, onBack: () -> Unit) {
         } else {
             // Тут Kotlin уже "знає", що coin не null (smart cast), тому можна передати його як `Coin`.
             // padding(innerPadding) — щоб контент не залазив під хедер.
-            CoinDetails(coin, modifier = Modifier.padding(innerPadding))
+            CoinDetails(coin, modifier = Modifier.padding(innerPadding), onEdit = onEdit)
         }
     }
 }

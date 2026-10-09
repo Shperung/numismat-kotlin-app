@@ -68,6 +68,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     // Аналог `firebase/ai` — Firebase AI Logic (Gemini). Версію теж підбирає BOM.
     implementation(libs.firebase.ai)
+    // Аналог `firebase/auth` — вхід адміна email/паролем. Сесію SDK зберігає на пристрої сам.
+    implementation(libs.firebase.auth)
+    // Аналог `firebase/storage` — фото монет.
+    implementation(libs.firebase.storage)
     // Дає `.await()` для Firebase Task — щоб писати `getDocs(...)` як `await` без колбеків.
     implementation(libs.kotlinx.coroutines.play.services)
     // `viewModel()` у Compose — замість Context Provider (див. CoinsViewModel.kt).

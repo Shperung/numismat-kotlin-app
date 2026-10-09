@@ -66,10 +66,17 @@
 9. [ ] Фото монет (камера/галерея) + Coil
 10. [ ] Пошук, фільтри, статистика
 11. [ ] AI «цікаві факти»: Gemini (Firebase AI Logic) ✓ → кнопка Groq через `numismat-server` ✓ → markdown → чат з контекстом → інші провайдери
+12. [ ] Адмінка (як у `numismat-web-app`, крок 10):
+ 12.1 [x] Вхід: Firebase Auth email/пароль, таб «Увійти» ↔ «Адмінка» замість «Інфо», «Вийти»
+ 12.2 [x] Додавання монети: форма + вибір фото аверсу/реверсу (Photo Picker) → Storage → документ у `coins`
+ 12.3 [x] Редагування: «Редагувати» на екрані монети (лише з сесією) → та сама форма
+ 12.4 [ ] Форма країни (`countries`, код = id документа)
+ 12.5 [ ] Видалення монети (у вебі ще немає) + фото зі Storage
+ 12.6 [ ] Пізніше: заповнення форми з фото через Gemini; «Покращити фото» (у вебі — `sharp` на сервері)
 
 ## Поточний стан
 Крок 2 — проєкт створено з шаблону Empty Activity (Compose), package `com.example.numismat`.
-Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Інфо) на `HorizontalPager`,
+Hello World запущено на S25 Ultra. Додано bottom tabs (Головна / Список / Увійти↔Адмінка) на `HorizontalPager`,
 кожен таб — порожній екран з назвою (як в Expo-версії); стан табів не губиться при перемиканні.
 Крок 1 (основи Kotlin) поки пропущено — пояснюємо синтаксис по ходу.
 Підключено Firestore (як в Expo-версії): колекція `coins` читається через `CoinsViewModel`.
@@ -82,6 +89,18 @@ AI-кнопки в `CoinDetails` (`AiButton(id, title, logo, ask)`) — акор
 (`fetchProviders`, logo — URL) → `askServer(id, …)`. Відповіді — markdown (`MarkdownText`).
 Gemini і Groq (одна відповідь) раніше перевірено на S25 Ultra; акордеон і markdown — ще не запускались. Поки без чату.
 Тап по фото монети → `PhotoViewer` (повноекранний `Dialog`, pinch zoom 1–5×, pan коли збільшено, подвійний тап — скидання).
+Крок 12.1 — вхід адміна: таб «Інфо» прибрано (як у вебі), третій таб — «Увійти» (`LoginScreen`) або «Адмінка»
+(`AdminScreen`: email + «Вийти»). `AuthViewModel` у `RootLayout` → `user` у `TabLayout`. Вхід перевірено на S25 Ultra.
+Права на запис перевіряють ті самі Security Rules, що й для вебу (запис лише для `uid` адміна).
+Крок 12.2 — в «Адмінці» під «Вийти» `CoinForm`: 2 фото (Photo Picker), назва, країна (`CountryPicker`, тепер у
+`components/`), номінал / валюта / рік, опис. `lib/SaveCoin.kt`: фото паралельно в Storage
+(`coins/{country}/{value}-{currency}-{year}-{ts}-avers.jpg`, як у вебі) → `coins.add(...)` →
+`CoinsViewModel.save` + перехід на екран нової монети; форма очищується (країна лишається).
+Крок 12.3 — редагування: з сесією в `CoinDetails` (екран монети і Головна) кнопка «✏️ Редагувати» (`onEdit`, null без
+сесії) → роут `edit/{id}` → `EditCoinScreen` = `CoinForm(editing = coin)`. `saveCoin(context, id, …)`: з id —
+`update(values)`, фото необовʼязкові (превʼю — збережені URL, вантажаться лише нововибрані), очищений опис →
+`FieldValue.delete()`. Після збереження — `navigate("coin/{id}") { popUpTo("tabs") }`. Кроки 12.2–12.3 ще не запускались.
+"Список" і Головна самі не оновлюються — актуальні дані після повторного вибору країни / перезапуску.
 
 ## Журнал (що вивчено / зроблено)
 - Встановлено Android Studio, підключено S25 Ultra (USB debugging, вимкнено Auto Blocker).
@@ -153,3 +172,22 @@ Gemini і Groq (одна відповідь) раніше перевірено �
  Жести: `pointerInput { detectTransformGestures }` (pinch + pan разом; zoom/pan — зміна за кадр, тож savedScale не потрібні),
  окремий `pointerInput { detectTapGestures(onDoubleTap) }`. `Animatable` ≈ `useSharedValue` (`snapTo` / `animateTo` ≈ withTiming),
  `graphicsLayer { scaleX; translationX }` ≈ `useAnimatedStyle`. Кнопка закриття — `IconButton` + `statusBarsPadding()`.
+- Вхід адміна (як "add admin" у вебі): `firebase-auth` з BOM (24.2.0). У вебі — REST + httpOnly-cookie, бо сервер Next
+ спільний для всіх запитів; тут SDK (`auth` у `lib/Firebase.kt`) — він сам зберігає сесію між запусками й оновлює токен.
+ `AuthViewModel`: `AuthStateListener` ≈ `onAuthStateChanged`, відписка в `onCleared()` ≈ cleanup useEffect.
+ `LoginScreen`: контрольовані `OutlinedTextField` (`PasswordVisualTransformation`, `KeyboardOptions`),
+ `signInWithEmailAndPassword(...).await()`, невірні дані — класи винятків `FirebaseAuthInvalid*Exception`
+ (замість кодів `INVALID_LOGIN_CREDENTIALS`). Редіректу немає: зміна `user` сама перемикає таб на `AdminScreen`.
+ Список табів — у `TabLayout` (залежить від `user`), `if` як вираз + smart cast.
+- Додавання монети (як `saveCoin` у вебі): `firebase-storage` з BOM (22.0.2). Фото — `PickVisualMedia`
+ через `rememberLauncherForActivityResult` (≈ `<input type="file">`, без дозволів), результат — `Uri` content://.
+ Тип — `contentResolver.getType(uri)`, розширення — `MimeTypeMap`; `putFile(uri, StorageMetadata)` + `downloadUrl`.
+ Паралельно — `coroutineScope { async {} }` ≈ `Promise.all`. Числа: ціле → `Long` (integerValue), інакше `Double`.
+ Поля — контрольовані (`value` + `onValueChange`), валідація й тексти помилок як у вебі; кома в номіналі → крапка.
+ Pager центрує невисокий контент → `fillMaxSize()` на сторінці; `imePadding()` + `verticalScroll` — під клавіатуру.
+- Редагування (як `/admin/edit/[id]` у вебі): `CoinForm(editing)` — початкові значення в `mutableStateOf(editing?.name ?: "")`
+ (≈ `defaultValue`). `update()` SDK змінює лише передані поля (≈ PATCH + `updateMask`), падає, якщо документа немає;
+ `FieldValue.delete()` видаляє поле. `buildMap { put(...) }` — збирання Map з умовними полями.
+ Колбек "лише для адміна" — nullable-функція `((String) -> Unit)?` (≈ `onEdit?: (id) => void`).
+ Пастка: `if (x) { id -> ... }` — фігурні дужки тут блок if, а не лямбда → лямбду кладемо всередину блоку.
+ `navigate(...) { popUpTo("tabs") }` ≈ `router.dismissTo` + push: стек — таби → монета, без форми.
