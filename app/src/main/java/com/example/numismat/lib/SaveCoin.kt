@@ -2,6 +2,7 @@ package com.example.numismat.lib
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.webkit.MimeTypeMap
 import com.example.numismat.model.Coin
 import com.google.firebase.firestore.FieldValue
@@ -61,6 +62,20 @@ suspend fun saveCoin(context: Context, id: String?, coin: Coin, avers: Uri?, rev
         avers = aversUrl ?: coin.avers,
         revers = reversUrl ?: coin.revers,
     )
+}
+
+// Аналог `deleteCoin` з src/lib/admin.ts в Expo: спершу документ, потім його фото зі Storage.
+suspend fun deleteCoin(coin: Coin) {
+    db.collection("coins").document(coin.id).delete().await()
+    // ≈ `Promise.allSettled`: якщо фото вже немає, монету все одно видалено — помилку лише логуємо.
+    // `getReferenceFromUrl` ≈ `ref(storage, url)`: шлях у бакеті береться з download URL.
+    listOfNotNull(coin.avers, coin.revers).forEach { url ->
+        try {
+            storage.getReferenceFromUrl(url).delete().await()
+        } catch (e: Exception) {
+            Log.w("Admin", "Фото не видалено: $url", e)
+        }
+    }
 }
 
 // ≈ `uploadPhoto` у вебі. Uri з Photo Picker — не файл, а "посилання" content://, тип беремо в системи.

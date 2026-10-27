@@ -49,4 +49,9 @@ class CoinsViewModel : ViewModel() {
             state.copy(coins = if (exists) state.coins.map { if (it.id == coin.id) coin else it } else state.coins + coin)
         }
     }
+
+    // Видалена в адмінці монета (≈ `.filter((c) => c.id !== id)`).
+    fun remove(id: String) {
+        _state.update { state -> state.copy(coins = state.coins.filter { it.id != id }) }
+    }
 }

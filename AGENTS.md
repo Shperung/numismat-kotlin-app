@@ -70,9 +70,9 @@
  12.1 [x] Вхід: Firebase Auth email/пароль, таб «Увійти» ↔ «Адмінка» замість «Інфо», «Вийти»
  12.2 [x] Додавання монети: форма + вибір фото аверсу/реверсу (Photo Picker) → Storage → документ у `coins`
  12.3 [x] Редагування: «Редагувати» на екрані монети (лише з сесією) → та сама форма
- 12.4 [ ] Форма країни (`countries`, код = id документа)
- 12.5 [ ] Видалення монети (у вебі ще немає) + фото зі Storage
- 12.6 [ ] Пізніше: заповнення форми з фото через Gemini; «Покращити фото» (у вебі — `sharp` на сервері)
+ 12.4 [x] Форма країни (`countries`, код = id документа) — лише додавання; редагування/перейменування (як у вебі) — пізніше
+ 12.5 [x] Видалення монети (як в Expo) + фото зі Storage
+ 12.6 [~] Заповнення форми з фото через Gemini ✓; «Покращити фото» (у вебі — `sharp` на сервері) — пізніше
 
 ## Поточний стан
 Крок 2 — проєкт створено з шаблону Empty Activity (Compose), package `com.example.numismat`.
@@ -100,6 +100,13 @@ Gemini і Groq (одна відповідь) раніше перевірено �
 сесії) → роут `edit/{id}` → `EditCoinScreen` = `CoinForm(editing = coin)`. `saveCoin(context, id, …)`: з id —
 `update(values)`, фото необовʼязкові (превʼю — збережені URL, вантажаться лише нововибрані), очищений опис →
 `FieldValue.delete()`. Після збереження — `navigate("coin/{id}") { popUpTo("tabs") }`. Кроки 12.2–12.3 ще не запускались.
+Крок 12.4 — в «Адмінці» під формою монети `CountryForm` (код, прапор, назви ua/en; валідація як у вебі),
+`lib/SaveCountry.kt` → `addCountry` (помилка, якщо код уже є) → `CountriesViewModel.add` (одразу в усіх `CountryPicker`).
+Крок 12.5 — на `EditCoinScreen` кошик у хедері → `AlertDialog` → `deleteCoin` (документ, потім фото зі Storage) →
+`CoinsViewModel.remove` + `popBackStack("tabs")`. Кроки 12.4–12.5 ще не запускались.
+Крок 12.6 — у `CoinForm` під фото «✨ Заповнити з фото через Gemini» (активна, коли є обидва фото, нові чи збережені):
+`describeCoinPhotos` у `lib/Ai.kt` (`gemini-3.5-flash`, JSON за `responseSchema`) заповнює назву, номінал, валюту,
+рік, опис і країну (якщо її немає в довіднику — лише повідомлення). Ще не запускалось.
 "Список" і Головна самі не оновлюються — актуальні дані після повторного вибору країни / перезапуску.
 
 ## Журнал (що вивчено / зроблено)
@@ -191,3 +198,12 @@ Gemini і Groq (одна відповідь) раніше перевірено �
  Колбек "лише для адміна" — nullable-функція `((String) -> Unit)?` (≈ `onEdit?: (id) => void`).
  Пастка: `if (x) { id -> ... }` — фігурні дужки тут блок if, а не лямбда → лямбду кладемо всередину блоку.
  `navigate(...) { popUpTo("tabs") }` ≈ `router.dismissTo` + push: стек — таби → монета, без форми.
+- Країна й видалення (як "add CRUD coins" в Expo): `document(id).get().exists()` перед `set()` (інакше `set` перезапише),
+ `Regex(...).matches` ≈ `/^...$/.test`, `take(3)` ≈ `maxLength`. Видалення: `document(id).delete()`,
+ `storage.getReferenceFromUrl(url).delete()` у try/catch (≈ `Promise.allSettled`), `listOfNotNull(...)`.
+ `TopAppBar(actions = {})` ≈ `headerRight`, `AlertDialog` ≈ `Alert.alert` (показується за станом, а не викликом),
+ `popBackStack("tabs", inclusive = false)` ≈ `router.dismissAll()`.
+- Gemini з фото (як `describeCoinPhotos` в Expo): `generationConfig { responseMimeType = "application/json";
+ responseSchema = Schema.obj(mapOf(...)) }` ≈ `Schema.object({ properties })`, `content { text(); inlineData(bytes, mime) }`
+ (base64 SDK робить сам). Байти: `contentResolver.openInputStream(uri).use { readBytes() }` для content://,
+ `URL(url).readBytes()` для збережених — у `Dispatchers.IO`. `use {}` ≈ try/finally з `close()`.

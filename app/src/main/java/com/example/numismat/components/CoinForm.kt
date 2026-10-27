@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,12 +28,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.numismat.lib.describeCoinPhotos
 import com.example.numismat.lib.saveCoin
 import com.example.numismat.model.Coin
 import com.example.numismat.model.Country
 import kotlinx.coroutines.launch
 
-// Аналог src/components/coin-form.tsx з веб-версії (без Gemini і «Покращити»).
+// Аналог src/components/coin-form.tsx з веб-версії (без «Покращити»).
 // `editing` — монета для редагування (≈ проп `editing?: Coin`), null — нова монета.
 // `onSaved` — монету збережено; куди переходити, вирішує RootLayout (у вебі — `redirect('/coin/{id}')`).
 @Composable
@@ -56,6 +58,7 @@ fun CoinForm(
     // ≈ `const [state, action, pending] = useActionState(saveCoin, null)`.
     var error by remember { mutableStateOf<String?>(null) }
     var pending by remember { mutableStateOf(false) }
+    var describing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     // Context потрібен, щоб прочитати вибране фото (≈ доступ до системи, якого в браузері не видно).
     val context = LocalContext.current
@@ -118,6 +121,37 @@ fun CoinForm(
         }
     }
 
+    // Фото для Gemini: нововибране або збережене (≈ `photo(side)` в Expo).
+    val aversPhoto = avers?.toString() ?: editing?.avers
+    val reversPhoto = revers?.toString() ?: editing?.revers
+
+    // ≈ `describe` в Expo: Gemini дивиться на обидва фото й заповнює поля форми.
+    fun describe() {
+        val aversUrl = aversPhoto ?: return
+        val reversUrl = reversPhoto ?: return
+        scope.launch {
+            describing = true
+            error = null
+            try {
+                val draft = describeCoinPhotos(context, aversUrl, reversUrl, countries)
+                name = draft.name
+                value = draft.value
+                currency = draft.currency
+                year = draft.year
+                info = draft.info ?: ""
+                // Країну ставимо, лише якщо вона вже є в довіднику — інакше спершу додати її формою країни.
+                if (countries.any { it.id == draft.country }) {
+                    country = draft.country
+                } else {
+                    error = "Країни «${draft.country}» немає в списку — спершу додайте її"
+                }
+            } catch (e: Exception) {
+                error = e.message ?: e.toString()
+            }
+            describing = false
+        }
+    }
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(if (editing != null) "Редагування монети" else "Нова монета", style = MaterialTheme.typography.titleLarge)
         Row(
@@ -125,8 +159,16 @@ fun CoinForm(
             modifier = Modifier.align(Alignment.CenterHorizontally),
         ) {
             // Превʼю: нововибране фото або збережене (у вебі — `initial={editing?.avers}`).
-            PhotoInput("Аверс", avers?.toString() ?: editing?.avers) { avers = it }
-            PhotoInput("Реверс", revers?.toString() ?: editing?.revers) { revers = it }
+            PhotoInput("Аверс", aversPhoto) { avers = it }
+            PhotoInput("Реверс", reversPhoto) { revers = it }
+        }
+        OutlinedButton(
+            onClick = { describe() },
+            // Активна, лише коли є обидва фото.
+            enabled = aversPhoto != null && reversPhoto != null && !describing && !pending,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (describing) "Gemini аналізує фото..." else "✨ Заповнити з фото через Gemini")
         }
         OutlinedTextField(
             value = name,

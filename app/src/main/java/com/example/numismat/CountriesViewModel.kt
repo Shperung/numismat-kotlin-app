@@ -7,6 +7,7 @@ import com.example.numismat.model.Country
 import com.example.numismat.model.countryFromMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // Аналог типу CountriesState з countries-provider.tsx.
@@ -31,5 +32,11 @@ class CountriesViewModel : ViewModel() {
                 CountriesState(loading = false, error = e.toString())
             }
         }
+    }
+
+    // Додана в адмінці країна — одразу з'являється в усіх CountryPicker (в Expo — `reload()`).
+    // `sortedBy { it.id }` — Firestore віддає документи впорядкованими за id, тримаємо той самий порядок.
+    fun add(country: Country) {
+        _state.update { state -> state.copy(countries = (state.countries + country).sortedBy { it.id }) }
     }
 }

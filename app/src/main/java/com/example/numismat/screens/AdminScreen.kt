@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -16,14 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.numismat.components.CoinForm
+import com.example.numismat.components.CountryForm
 import com.example.numismat.lib.auth
 import com.example.numismat.model.Coin
 import com.example.numismat.model.Country
 import com.google.firebase.auth.FirebaseUser
 
-// Аналог src/app/admin/page.tsx: "хто увійшов" + "Вийти" + форма нової монети. Форма країни — наступний крок.
+// Аналог src/app/admin/page.tsx: "хто увійшов" + "Вийти" + форми нової монети і нової країни.
 @Composable
-fun AdminScreen(user: FirebaseUser, countries: List<Country>, onCoinAdded: (Coin) -> Unit) {
+fun AdminScreen(
+    user: FirebaseUser,
+    countries: List<Country>,
+    onCoinAdded: (Coin) -> Unit,
+    onCountryAdded: (Country) -> Unit,
+) {
     // fillMaxSize — інакше Pager центрує невисокий контент посередині екрана.
     // imePadding — відступ під клавіатуру, щоб нижні поля можна було докрутити (≈ KeyboardAvoidingView).
     Column(
@@ -44,5 +51,7 @@ fun AdminScreen(user: FirebaseUser, countries: List<Country>, onCoinAdded: (Coin
             TextButton(onClick = { auth.signOut() }) { Text("Вийти") }
         }
         CoinForm(countries, onSaved = onCoinAdded)
+        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+        CountryForm(onSaved = onCountryAdded)
     }
 }

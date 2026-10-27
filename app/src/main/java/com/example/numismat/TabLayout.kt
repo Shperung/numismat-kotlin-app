@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.numismat.model.Coin
+import com.example.numismat.model.Country
 import com.example.numismat.screens.AdminScreen
 import com.example.numismat.screens.HomeScreen
 import com.example.numismat.screens.ListScreen
@@ -51,6 +52,7 @@ fun TabLayout(
     user: FirebaseUser?,
     onCoinClick: (String) -> Unit,
     onCoinAdded: (Coin) -> Unit,
+    onCountryAdded: (Country) -> Unit,
     onEditCoin: ((String) -> Unit)?,
 ) {
     // `listOf(...)` — незмінний масив. Icons.Filled.Home ≈ <Ionicons name="home" />.
@@ -109,7 +111,11 @@ fun TabLayout(
                 0 -> HomeScreen(countriesState, onEditCoin)
                 1 -> ListScreen(countriesState, onCoinClick)
                 // `if` — теж вираз; smart cast: у гілці `user != null` Kotlin знає, що user не null.
-                2 -> if (user != null) AdminScreen(user, countriesState.countries, onCoinAdded) else LoginScreen()
+                2 -> if (user != null) {
+                    AdminScreen(user, countriesState.countries, onCoinAdded, onCountryAdded)
+                } else {
+                    LoginScreen()
+                }
             }
         }
     }

@@ -29,7 +29,8 @@ fun RootLayout() {
     // Важливо: `viewModel()` всередині `composable(...) { }` дав би окремий екземпляр для кожного
     // екрана стеку (кожен екран має свій "скоуп"), і екран монети завантажив би монети вдруге.
     // Тому стан живе тут і передається в екрани параметрами.
-    val countriesState by viewModel<CountriesViewModel>().state.collectAsState()
+    val countriesViewModel = viewModel<CountriesViewModel>()
+    val countriesState by countriesViewModel.state.collectAsState()
     // Усі монети — лише щоб екран монети знайшов потрібну за id (як `useCoins()` у coin/[id].tsx).
     val coinsViewModel = viewModel<CoinsViewModel>()
     val coinsState by coinsViewModel.state.collectAsState()
@@ -60,6 +61,7 @@ fun RootLayout() {
                 // ≈ router.push(`/coin/${id}`).
                 onCoinClick = { id -> navController.navigate("coin/$id") },
                 onCoinAdded = onCoinSaved,
+                onCountryAdded = { countriesViewModel.add(it) },
                 onEditCoin = onEditCoin,
             )
         }
@@ -83,6 +85,11 @@ fun RootLayout() {
                 countries = countriesState.countries,
                 onBack = { navController.popBackStack() },
                 onSaved = onCoinSaved,
+                // ≈ `router.dismissAll()` в Expo: прибрати форму й екран монети, повернутись на таби.
+                onDeleted = { id ->
+                    coinsViewModel.remove(id)
+                    navController.popBackStack("tabs", inclusive = false)
+                },
             )
         }
     }
